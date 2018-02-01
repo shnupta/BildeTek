@@ -6,3 +6,12 @@
 \\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\Tests\bin\Debug\BildeTek.pdb
 \\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\Tests\obj\Debug\Tests.exe
 \\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\Tests\obj\Debug\Tests.pdb
+C:\Users\Casey\source\repos\BildeTek\Tests\bin\Debug\Tests.exe.config
+C:\Users\Casey\source\repos\BildeTek\Tests\bin\Debug\Tests.exe
+C:\Users\Casey\source\repos\BildeTek\Tests\bin\Debug\Tests.pdb
+C:\Users\Casey\source\repos\BildeTek\Tests\bin\Debug\BildeTek.dll
+C:\Users\Casey\source\repos\BildeTek\Tests\bin\Debug\BildeTek.pdb
+C:\Users\Casey\source\repos\BildeTek\Tests\obj\Debug\Tests.csprojResolveAssemblyReference.cache
+C:\Users\Casey\source\repos\BildeTek\Tests\obj\Debug\Tests.csproj.CoreCompileInputs.cache
+C:\Users\Casey\source\repos\BildeTek\Tests\obj\Debug\Tests.exe
+C:\Users\Casey\source\repos\BildeTek\Tests\obj\Debug\Tests.pdb

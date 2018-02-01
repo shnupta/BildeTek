@@ -1,0 +1,6 @@
+c:\users\casey\source\repos\BildeProcessing\BildeProcessing\bin\Debug\BildeProcessing.dll
+c:\users\casey\source\repos\BildeProcessing\BildeProcessing\bin\Debug\BildeProcessing.pdb
+c:\users\casey\source\repos\BildeProcessing\BildeProcessing\obj\Debug\BildeProcessing.csprojResolveAssemblyReference.cache
+c:\users\casey\source\repos\BildeProcessing\BildeProcessing\obj\Debug\BildeProcessing.csproj.CoreCompileInputs.cache
+c:\users\casey\source\repos\BildeProcessing\BildeProcessing\obj\Debug\BildeProcessing.dll
+c:\users\casey\source\repos\BildeProcessing\BildeProcessing\obj\Debug\BildeProcessing.pdb

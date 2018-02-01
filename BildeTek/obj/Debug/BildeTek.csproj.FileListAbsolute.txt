@@ -3,3 +3,9 @@
 \\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\BildeTek\bin\Debug\BildeTek.pdb
 \\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\BildeTek\obj\Debug\BildeTek.dll
 \\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\BildeTek\obj\Debug\BildeTek.pdb
+C:\Users\Casey\source\repos\BildeTek\BildeTek\bin\Debug\BildeTek.dll
+C:\Users\Casey\source\repos\BildeTek\BildeTek\bin\Debug\BildeTek.pdb
+C:\Users\Casey\source\repos\BildeTek\BildeTek\obj\Debug\BildeTek.csprojResolveAssemblyReference.cache
+C:\Users\Casey\source\repos\BildeTek\BildeTek\obj\Debug\BildeTek.csproj.CoreCompileInputs.cache
+C:\Users\Casey\source\repos\BildeTek\BildeTek\obj\Debug\BildeTek.dll
+C:\Users\Casey\source\repos\BildeTek\BildeTek\obj\Debug\BildeTek.pdb

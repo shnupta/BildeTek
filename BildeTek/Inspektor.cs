@@ -390,7 +390,7 @@ namespace BildeTek
         /// </summary>
         /// <param name="i"></param>
         /// <returns>A byte[] of ARGB values.</returns>
-        private unsafe static byte[] ConvertToGreyScale32Bpp(Bilde i) /////////////////////////// WAY TO SLOW, FIX THIS
+        private unsafe static byte[] ConvertToGreyScale32Bpp(Bilde i)
         {
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
@@ -453,12 +453,14 @@ namespace BildeTek
             int width = i.Width;
             int height = i.Height;
 
-            BildeData imageData = i.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, i.PixelFormat);
+            
 
             int bitsPerPixel = i.BitsPerPixel;
             int stride = i.Stride;
 
             byte[] greyData = GetGreyBytesOnly(i);
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, i.PixelFormat);
+
 
             byte* scan0 = (byte*)imageData.Scan0.ToPointer();
 
@@ -506,31 +508,17 @@ namespace BildeTek
                 }
             }
 
-
-            ////////////////////////////////////////////////////////////////////////////// FIX
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    byte* px = scan0 + y * imageData.Stride + x * bitsPerPixel / 8;
-
-                    b = *(px);
-                    g = *(px + 1);
-                    r = *(px + 2);
-
-                    int index = y * width + x;
-
-                    *px = (byte)magnitude[index];
-                    *(px + 1) = (byte)magnitude[index];
-                    *(px + 2) = (byte)magnitude[index];
-                }
-            }
             // unlock the image
             i.UnlockBits(imageData);
 
+            return Array.ConvertAll(magnitude, new Converter<double, byte>(DoubleToByte));
+
+        }
 
 
+        private static byte DoubleToByte(double db)
+        {
+            return (byte)db;
         }
     }
 }
