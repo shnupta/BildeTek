@@ -32,8 +32,7 @@ namespace BildeTek
                 throw new Exception("The kernel must have an odd length, else there is no centre pixel.");
             }
 
-            Bitmap image = i.GetBitmap();
-            PixelFormat pf = image.PixelFormat;
+            PixelFormat pf = i.PixelFormat;
 
             switch (pf)
             {
@@ -55,12 +54,11 @@ namespace BildeTek
         /// <returns>A byte[] of BGR values.</returns>
         private unsafe static byte[] Convolve24Bpp(Bilde i, double[,] kernel, int radius)
         {
-            Bitmap image = i.GetBitmap();
 
-            int width = image.Width;
-            int height = image.Height;
+            int width = i.Width;
+            int height = i.Height;
 
-            BitmapData imageData = image.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, image.PixelFormat);
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, i.PixelFormat);
 
             
 
@@ -123,7 +121,7 @@ namespace BildeTek
                 }
             }
 
-            image.UnlockBits(imageData);
+            i.UnlockBits(imageData);
 
             return dataOut;
 
@@ -137,12 +135,11 @@ namespace BildeTek
         /// <returns>A byte[] of ARGB pixel values.</returns>
         private unsafe static byte[] Convolve32Bpp(Bilde i, double[,] kernel, int radius)
         {
-            Bitmap image = i.GetBitmap();
 
-            int width = image.Width;
-            int height = image.Height;
+            int width = i.Width;
+            int height = i.Height;
 
-            BitmapData imageData = image.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, image.PixelFormat);
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, i.PixelFormat);
 
             byte bitsPerPixel = (byte)((imageData.Stride / width) * 8);
 
@@ -205,16 +202,19 @@ namespace BildeTek
                 }
             }
 
-            image.UnlockBits(imageData);
+            i.UnlockBits(imageData);
 
             return dataOut;
         }
 
-
+        /// <summary>
+        /// Converts the provided image to a greyscale image of the same pixel format.
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns>A byte[] of the colour channel values.</returns>
         public static byte[] ConvertToGreyScale(Bilde i)
         {
-            Bitmap image = i.GetBitmap();
-            PixelFormat pf = image.PixelFormat;
+            PixelFormat pf = i.PixelFormat;
 
             switch (pf)
             {
@@ -228,53 +228,123 @@ namespace BildeTek
             }
         }
 
-        private unsafe static byte[] ConvertToGreyScale24Bpp(Bilde i)
+        /// <summary>
+        /// Converts the image into greyscale, returning only the value of each pixel (rather than a separate colour for each colour channel).
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns>A byte[] of the colours represented if the image were 8bpp.</returns>
+        public static byte[] GetGreyBytesOnly(Bilde i)
         {
-            Bitmap image = i.GetBitmap();
+            PixelFormat pf = i.PixelFormat;
 
-            //BitmapData imageData = image.LockBits(new Rectangle)
+            switch (pf)
+            {
+                case PixelFormat.Format24bppRgb:
+                    return GetGreyBytesOnly24Bpp(i);
+                case PixelFormat.Format32bppArgb:
+                case PixelFormat.Format32bppRgb:
+                    return GetGreyBytesOnly32Bpp(i);
+                default:
+                    throw new Exception(String.Format("The pixel format {0} is not supported.", pf.ToString()));
+            }
+        }
 
-            int width = image.Width;
-            int height = image.Height;
 
-            byte r, g, b;
-
-            
-
+        private unsafe static byte[] GetGreyBytesOnly24Bpp(Bilde i)
+        {
             return new byte[9];
         }
 
-        private unsafe static byte[] ConvertToGreyScale32Bpp(Bilde i)
+
+        private unsafe static byte[] GetGreyBytesOnly32Bpp(Bilde i)
         {
-            Bitmap image = i.GetBitmap();
+            return new byte[9];
+        }
 
-            int width = image.Width;
-            int height = image.Height;
 
-            byte[] imageData = i.GetBytes();
 
-            byte[] greyOut = new byte[imageData.Length];
+
+        /// <summary>
+        /// Converts the Bilde into a 24Bpp greyscale image.
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns>A byte[] of RGB values.</returns>
+        private unsafe static byte[] ConvertToGreyScale24Bpp(Bilde i) ////////////////////////////////// TOO SLOW NEED TO FIX
+        {
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+
+            int width = i.Width;
+            int height = i.Height;
+
+            byte[] greyOut = new byte[height * i.Stride];
 
             byte r, g, b;
 
+            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
+
             for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < i.Stride; x += 4)
+                for (int x = 0; x < width; x++)
                 {
-                    b = imageData[y * i.Stride + x];
-                    g = imageData[y * i.Stride + x + 1];
-                    r = imageData[y * i.Stride + x + 2];
+                    int index = y * imageData.Stride + x * i.BitsPerPixel / 8;
+                    byte* px = scan0 + index;
+
+                    b = *px;
+                    g = *(px + 1);
+                    r = *(px + 2);
 
                     byte grey = (byte)(b * .11 + g * .59 + r * .3);
 
-                    greyOut[y * i.Stride + x] = grey;
-                    greyOut[y * i.Stride + x + 1] = grey;
-                    greyOut[y * i.Stride + x + 2] = grey;
-                    greyOut[y * i.Stride + x + 3] = 0xFF;
-
-
+                    greyOut[index] = grey;
+                    greyOut[index + 1] = grey;
+                    greyOut[index + 2] = grey;
                 }
             }
+
+            i.UnlockBits(imageData);
+
+            return greyOut;
+        }
+
+        /// <summary>
+        /// Converts the Bilde into a 32Bpp greyscale image.
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns>A byte[] of ARGB values.</returns>
+        private unsafe static byte[] ConvertToGreyScale32Bpp(Bilde i) /////////////////////////// WAY TO SLOW, FIX THIS
+        {
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+
+            int width = i.Width;
+            int height = i.Height;
+
+            byte[] greyOut = new byte[height * i.Stride];
+
+            byte r, g, b;
+
+            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = y * imageData.Stride + x * i.BitsPerPixel / 8;
+                    byte* px = scan0 + index;
+
+                    b = *px;
+                    g = *(px + 1);
+                    r = *(px + 2);
+
+                    byte grey = (byte)(b * .11 + g * .59 + r * .3);
+
+                    greyOut[index] = grey;
+                    greyOut[index + 1] = grey;
+                    greyOut[index + 2] = grey;
+                    greyOut[index + 3] = 0xFF; // alpha channel
+                }
+            }
+
+            i.UnlockBits(imageData);
 
             return greyOut;
         }

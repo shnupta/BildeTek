@@ -50,6 +50,74 @@ namespace BildeTek
             }
         }
 
+
+        public int Flags
+        {
+            get
+            {
+                return m_Image.Flags;
+            }
+        }
+        public Guid[] FrameDimensionsList
+        {
+            get
+            {
+                return m_Image.FrameDimensionsList;
+            }
+        }
+        public float HorizontalResolution
+        {
+            get
+            {
+                return m_Image.HorizontalResolution;
+            }
+        }
+
+        public ColorPalette Palette
+        {
+            get
+            {
+                return m_Image.Palette;
+            }
+            set
+            {
+                m_Image.Palette = value;
+            }
+        }
+
+        public PixelFormat PixelFormat
+        {
+            get
+            {
+                return m_Image.PixelFormat;
+            }
+        }
+
+        public ImageFormat RawFormat
+        {
+            get
+            {
+                return m_Image.RawFormat;
+            }
+        }
+
+        public Size Size
+        {
+            get
+            {
+                return m_Image.Size;
+            }
+        }
+
+        public float VerticalResolution
+        {
+            get
+            {
+                return m_Image.VerticalResolution;
+            }
+        }
+
+
         /// <summary>
         /// Basic constructor for a Bilde.
         /// </summary>
@@ -74,7 +142,7 @@ namespace BildeTek
         /// <returns>Returns a byte[] of all the (A)RGB values for the image. N.B. These may not be in RGB order.</returns>
         public unsafe byte[] GetBytes()
         {
-            BitmapData imageData = m_Image.LockBits(new Rectangle(0, 0, m_Image.Width, m_Image.Height), ImageLockMode.ReadOnly, m_Image.PixelFormat);
+            BildeData imageData = LockBits(new Rectangle(0, 0, m_Image.Width, m_Image.Height), ImageLockMode.ReadOnly, m_Image.PixelFormat);
 
             int bytes = imageData.Stride * m_Image.Height;
 
@@ -92,7 +160,7 @@ namespace BildeTek
                 }
             }
 
-            m_Image.UnlockBits(imageData);
+            UnlockBits(imageData);
 
             return dataOut;
 
@@ -101,7 +169,7 @@ namespace BildeTek
 
         private int GetBitsPerPixel()
         {
-            switch (m_Image.PixelFormat)
+            switch (this.PixelFormat)
             {
                 case PixelFormat.Format24bppRgb:
                     return 24;
@@ -114,9 +182,23 @@ namespace BildeTek
         }
 
 
-        public void LockBits(Rectangle rect, ImageLockMode ilm, PixelFormat pf)
+        public BildeData LockBits(Rectangle rect, ImageLockMode ilm, PixelFormat pf)
         {
-             
+            BitmapData bd = m_Image.LockBits(rect, ilm, pf);
+            BildeData bildeData = new BildeData();
+            bildeData.m_ImageData = bd;
+
+            return bildeData;
+        }
+
+        public void UnlockBits(BildeData bildeData)
+        {
+            m_Image.UnlockBits(bildeData.m_ImageData);
+        }
+
+        public void Save(string filename)
+        {
+            m_Image.Save(filename);
         }
 
 

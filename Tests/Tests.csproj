@@ -50,5 +50,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BildeTek\BildeTek.csproj">
+      <Project>{5f4b782c-0a91-45e0-8195-27f83f9d3db9}</Project>
+      <Name>BildeTek</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

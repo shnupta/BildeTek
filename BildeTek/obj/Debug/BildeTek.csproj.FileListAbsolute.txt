@@ -1,0 +1,5 @@
+\\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\BildeTek\obj\Debug\BildeTek.csprojResolveAssemblyReference.cache
+\\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\BildeTek\bin\Debug\BildeTek.dll
+\\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\BildeTek\bin\Debug\BildeTek.pdb
+\\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\BildeTek\obj\Debug\BildeTek.dll
+\\fs3\2017\2017williamsc\My Documents\Visual Studio 2017\Projects\BildeTek\BildeTek\obj\Debug\BildeTek.pdb

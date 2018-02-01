@@ -7,8 +7,8 @@
     <ProjectGuid>{5F4B782C-0A91-45E0-8195-27F83F9D3DB9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BildeProcessing</RootNamespace>
-    <AssemblyName>BildeProcessing</AssemblyName>
+    <RootNamespace>BildeTek</RootNamespace>
+    <AssemblyName>BildeTek</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
