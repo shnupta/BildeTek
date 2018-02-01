@@ -146,17 +146,22 @@ namespace BildeTek
 
             int bytes = imageData.Stride * m_Image.Height;
 
-            int bitsPerPixel = (imageData.Stride / m_Image.Width) * 8;
+            int height = Height;
+            int width = Width;
+
+            int stride = Stride;
+
+            int bitsPerPixel = BitsPerPixel;
 
             byte* scan0 = (byte*)imageData.Scan0.ToPointer();
 
             byte[] dataOut = new byte[bytes];
 
-            for (int y = 0; y < m_Image.Height; y++)
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < (m_Image.Width * (bitsPerPixel / 8)); x++)
+                for (int x = 0; x < (width * (bitsPerPixel / 8)); x++)
                 {
-                    dataOut[y * imageData.Stride + x] = *(scan0 + y * imageData.Stride + x);
+                    dataOut[y * stride + x] = *(scan0 + y * stride + x);
                 }
             }
 

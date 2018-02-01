@@ -13,8 +13,8 @@ namespace Tests
     {
         static unsafe void Main(string[] args)
         {
-            //Test24BppConvolve();
-            //TestGetBytes();
+            Test24BppConvolve();
+            TestGetBytes();
             TestConvertToGreyScale24Bpp();
 
             Console.WriteLine("All tests complete.");
@@ -32,13 +32,7 @@ namespace Tests
 
             Console.WriteLine("Created Bilde in {0}", DateTime.Now - start);
 
-            double[,] kernel = new double[,] { { 0, 0, 0, 1, 0, 0, 0 },
-                                               { 0, 1, 1, 1, 1, 1, 0 },
-                                               { 0, 1, 1, 1, 1, 1, 0 },
-                                               { 1, 1, 1, 1, 1, 1, 1 },
-                                               { 0, 1, 1, 1, 1, 1, 0 },
-                                               { 0, 1, 1, 1, 1, 1, 0 },
-                                               { 0, 0, 0, 1, 0, 0, 0 } };
+            double[,] kernel = Kernel.LensBlur;
 
             byte[] convolvedData = Inspektor.Convolve(i, kernel);
             Console.WriteLine("Bilde has been convolved in {0}", DateTime.Now - start);
@@ -82,24 +76,29 @@ namespace Tests
 
             Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
 
-            byte[] greyData = Inspektor.ConvertToGreyScale(i);
+            byte[] greyData = Inspektor.GetGreyBytesOnly(i);
             Console.WriteLine("Retrieved greyscale data in {0}", DateTime.Now - start);
 
             string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterflyBilde.grey.out.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 
+            int height = i.Height;
+            int width = i.Width;
+            int stride = i.Stride;
+            int bitsperpixel = i.BitsPerPixel;
+
             byte* scan0 = (byte*)imageData.Scan0.ToPointer();
 
 
-            for (int y = 0; y < i.Height; y++)
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < i.Width; x++)
+                for (int x = 0; x < width; x++)
                 {
-                    int index = y * imageData.Stride + x * i.BitsPerPixel / 8;
+                    int index = y * stride + x * bitsperpixel / 8;
                     byte* px = scan0 + index;
 
-                    byte colour = greyData[index];
+                    byte colour = greyData[y * width + x];
 
                     *px = colour;
                     *(px + 1) = colour;

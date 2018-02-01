@@ -64,9 +64,11 @@ namespace BildeTek
 
             byte* scan0 = (byte*)imageData.Scan0.ToPointer();
 
-            byte bitsPerPixel = (byte)((imageData.Stride / width) * 8);
+            byte bitsPerPixel = (byte)i.BitsPerPixel;
 
             int bytes = imageData.Stride * height;
+
+            int stride = i.Stride;
 
             byte[] dataOut = new byte[bytes];
 
@@ -82,7 +84,7 @@ namespace BildeTek
                 for (int x = 0; x < width; x++)
                 {
                     double bT = 0.0, gT = 0.0, rT = 0.0, kT = 0.0;
-                    int location = y * imageData.Stride + x * bitsPerPixel / 8;
+                    int location = y * stride + x * bitsPerPixel / 8;
 
                     for (int v = 0; v < kernelSize; v++)
                     {
@@ -97,7 +99,7 @@ namespace BildeTek
                                 continue;
                             }
 
-                            byte* pixel = scan0 + cY * imageData.Stride + cX * bitsPerPixel / 8;
+                            byte* pixel = scan0 + cY * stride + cX * bitsPerPixel / 8;
 
                             b = *pixel;
                             g = *(pixel + 1);
@@ -141,9 +143,11 @@ namespace BildeTek
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, i.PixelFormat);
 
-            byte bitsPerPixel = (byte)((imageData.Stride / width) * 8);
+            byte bitsPerPixel = (byte)i.BitsPerPixel;
 
             int bytes = imageData.Stride * height;
+
+            int stride = i.Stride;
 
             byte[] dataOut = new byte[bytes];
 
@@ -161,7 +165,7 @@ namespace BildeTek
                 for (int x = 0; x < width; x++)
                 {
                     double bT = 0.0, gT = 0.0, rT = 0.0, kT = 0.0;
-                    int location = y * imageData.Stride + x * bitsPerPixel / 8;
+                    int location = y * stride + x * bitsPerPixel / 8;
 
                     for (int v = 0; v < kernelSize; v++)
                     {
@@ -176,7 +180,7 @@ namespace BildeTek
                                 continue;
                             }
 
-                            byte* pixel = scan0 + cY * imageData.Stride + cX * bitsPerPixel / 8;
+                            byte* pixel = scan0 + cY * stride + cX * bitsPerPixel / 8;
 
                             b = *pixel;
                             g = *(pixel + 1);
@@ -252,13 +256,85 @@ namespace BildeTek
 
         private unsafe static byte[] GetGreyBytesOnly24Bpp(Bilde i)
         {
-            return new byte[9];
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, i.PixelFormat);
+
+            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
+
+            int width = i.Width;
+            int height = i.Height;
+
+            int stride = i.Stride;
+            int bitsperpixel = i.BitsPerPixel;
+
+            byte[] greyOut = new byte[i.Width * i.Height];
+
+            byte r, g, b, grey;
+            int index;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    index = y * stride + x * bitsperpixel / 8;
+
+                    byte* data = scan0 + index;
+
+                    b = *data;
+                    g = *(data + 1);
+                    r = *(data + 2);
+
+                    grey = (byte)(b * 0.11 + g * 0.59 + r * 0.3);
+
+                    greyOut[y * width + x] = grey;
+                
+                }
+            }
+
+            i.UnlockBits(imageData);
+
+            return greyOut;
         }
 
 
         private unsafe static byte[] GetGreyBytesOnly32Bpp(Bilde i)
         {
-            return new byte[9];
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, i.PixelFormat);
+
+            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
+
+            int width = i.Width;
+            int height = i.Height;
+
+            int stride = i.Stride;
+            int bitsperpixel = i.BitsPerPixel;
+
+            byte[] greyOut = new byte[i.Width * i.Height];
+
+            byte r, g, b, grey;
+            int index;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    index = y * stride + x * bitsperpixel / 8;
+
+                    byte* data = scan0 + index;
+
+                    b = *data;
+                    g = *(data + 1);
+                    r = *(data + 2);
+
+                    grey = (byte)(b * 0.11 + g * 0.59 + r * 0.3);
+
+                    greyOut[y * width + x] = grey;
+
+                }
+            }
+
+            i.UnlockBits(imageData);
+
+            return greyOut;
         }
 
 
@@ -269,12 +345,15 @@ namespace BildeTek
         /// </summary>
         /// <param name="i"></param>
         /// <returns>A byte[] of RGB values.</returns>
-        private unsafe static byte[] ConvertToGreyScale24Bpp(Bilde i) ////////////////////////////////// TOO SLOW NEED TO FIX
+        private unsafe static byte[] ConvertToGreyScale24Bpp(Bilde i)
         {
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
             int width = i.Width;
             int height = i.Height;
+
+            int stride = i.Stride;
+            int bitsperpixel = i.BitsPerPixel;
 
             byte[] greyOut = new byte[height * i.Stride];
 
@@ -286,7 +365,7 @@ namespace BildeTek
             {
                 for (int x = 0; x < width; x++)
                 {
-                    int index = y * imageData.Stride + x * i.BitsPerPixel / 8;
+                    int index = y * stride + x * bitsperpixel / 8;
                     byte* px = scan0 + index;
 
                     b = *px;
@@ -317,6 +396,8 @@ namespace BildeTek
 
             int width = i.Width;
             int height = i.Height;
+            int stride = i.Stride;
+            int bitsperpixel = i.BitsPerPixel;
 
             byte[] greyOut = new byte[height * i.Stride];
 
@@ -328,7 +409,7 @@ namespace BildeTek
             {
                 for (int x = 0; x < width; x++)
                 {
-                    int index = y * imageData.Stride + x * i.BitsPerPixel / 8;
+                    int index = y * stride + x * bitsperpixel / 8;
                     byte* px = scan0 + index;
 
                     b = *px;
@@ -347,6 +428,109 @@ namespace BildeTek
             i.UnlockBits(imageData);
 
             return greyOut;
+        }
+
+
+        public static byte[] Sobel(Bilde i)
+        {
+            PixelFormat pf = i.PixelFormat;
+
+            switch (pf)
+            {
+                case PixelFormat.Format24bppRgb:
+                    return Sobel24Bpp(i);
+                case PixelFormat.Format32bppArgb:
+                case PixelFormat.Format32bppRgb:
+                    return new byte[9]; // implement 32bpp option
+                default:
+                    throw new Exception(String.Format("The pixel format {0} is not supported.", pf.ToString()));
+            }
+        }
+
+
+        private unsafe static byte[] Sobel24Bpp(Bilde i)
+        {
+            int width = i.Width;
+            int height = i.Height;
+
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, i.PixelFormat);
+
+            int bitsPerPixel = i.BitsPerPixel;
+            int stride = i.Stride;
+
+            byte[] greyData = GetGreyBytesOnly(i);
+
+            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
+
+            byte r, g, b;
+
+            // Buffers
+            byte[] buffer = new byte[9];
+            double[] magnitude = new double[width * height]; // Stores the magnitude of the edge response
+            double[] orientation = new double[width * height]; // Stores the angle of the edge at that location
+
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    // the first of 3 bgr colour bytes
+                    byte* px = scan0 + y * stride + x * bitsPerPixel / 8;
+
+                    b = *(px);
+                    g = *(px + 1);
+                    r = *(px + 2);
+
+                    int index = y * width + x;
+
+                    // 3x3 window around (x,y)
+                    buffer[0] = greyData[index - width - 1];
+                    buffer[1] = greyData[index - width];
+                    buffer[2] = greyData[index - width + 1];
+                    buffer[3] = greyData[index - 1];
+                    buffer[4] = greyData[index];
+                    buffer[5] = greyData[index + 1];
+                    buffer[6] = greyData[index + width - 1];
+                    buffer[7] = greyData[index + width];
+                    buffer[8] = greyData[index + width + 1];
+
+                    // Sobel horizontal and vertical response
+                    double dx = buffer[2] + 2 * buffer[5] + buffer[8] - buffer[0] - 2 * buffer[3] - buffer[6];
+                    double dy = buffer[6] + 2 * buffer[7] + buffer[8] - buffer[0] - 2 * buffer[1] - buffer[2];
+
+                    magnitude[index] = Math.Sqrt(dx * dx + dy * dy); // 1141 is approximately the max sobel response, we will normalise later anyway
+
+                    // Directional orientation
+                    orientation[index] = Math.Atan2(dy, dx) + Math.PI; // Angle is in radians, now from 0 - 2PI. 
+
+                }
+            }
+
+
+            ////////////////////////////////////////////////////////////////////////////// FIX
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    byte* px = scan0 + y * imageData.Stride + x * bitsPerPixel / 8;
+
+                    b = *(px);
+                    g = *(px + 1);
+                    r = *(px + 2);
+
+                    int index = y * width + x;
+
+                    *px = (byte)magnitude[index];
+                    *(px + 1) = (byte)magnitude[index];
+                    *(px + 2) = (byte)magnitude[index];
+                }
+            }
+            // unlock the image
+            i.UnlockBits(imageData);
+
+
+
         }
     }
 }
