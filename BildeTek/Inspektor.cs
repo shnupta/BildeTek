@@ -430,7 +430,6 @@ namespace BildeTek
             return greyOut;
         }
 
-
         public static byte[] Sobel(Bilde i)
         {
             PixelFormat pf = i.PixelFormat;
@@ -519,6 +518,97 @@ namespace BildeTek
         private static byte DoubleToByte(double db)
         {
             return (byte)db;
+        }
+
+
+        public static byte[] Canny(Bilde i)
+        {
+            PixelFormat pf = i.PixelFormat;
+
+            switch(pf)
+            {
+                case PixelFormat.Format24bppRgb:
+                    return Canny24Bpp(i);
+                default:
+                    throw new Exception(String.Format("Pixel format {0} is not supported.", pf.ToString()));
+            }
+        }
+
+
+        private static byte[] ConvertToGreyScaleOnBytes(byte[] inBytes)
+        {
+            int length = inBytes.Length;
+
+            byte[] outBytes = new byte[length / 3];
+
+            byte b, g, r;
+
+            for (int i = 0; i < length; i += 3)
+            {
+                b = inBytes[i];
+                g = inBytes[i + 1];
+                r = inBytes[i + 2];
+
+                outBytes[i % 3] = (byte)(b * .11 + g * .59 + r * .3);
+            }
+
+            return outBytes;
+        }
+
+        
+        private static byte[] SobelOnBytes(byte[] inBytes, int width, int height, int stride)
+        {
+
+            byte[] greyData = ConvertToGreyScaleOnBytes(inBytes);
+            byte r, g, b;
+
+            // Buffers
+            byte[] buffer = new byte[9];
+            double[] magnitude = new double[width * height]; // Stores the magnitude of the edge response
+            double[] orientation = new double[width * height]; // Stores the angle of the edge at that location
+
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+
+                    int index = y * width + x;
+
+                    // 3x3 window around (x,y)
+                    buffer[0] = greyData[index - width - 1];
+                    buffer[1] = greyData[index - width];
+                    buffer[2] = greyData[index - width + 1];
+                    buffer[3] = greyData[index - 1];
+                    buffer[4] = greyData[index];
+                    buffer[5] = greyData[index + 1];
+                    buffer[6] = greyData[index + width - 1];
+                    buffer[7] = greyData[index + width];
+                    buffer[8] = greyData[index + width + 1];
+
+                    // Sobel horizontal and vertical response
+                    double dx = buffer[2] + 2 * buffer[5] + buffer[8] - buffer[0] - 2 * buffer[3] - buffer[6];
+                    double dy = buffer[6] + 2 * buffer[7] + buffer[8] - buffer[0] - 2 * buffer[1] - buffer[2];
+
+                    magnitude[index] = Math.Sqrt(dx * dx + dy * dy); // 1141 is approximately the max sobel response, we will normalise later anyway
+
+                    // Directional orientation
+                    orientation[index] = Math.Atan2(dy, dx) + Math.PI; // Angle is in radians, now from 0 - 2PI. 
+
+                }
+            }
+
+
+            return Array.ConvertAll(magnitude, new Converter<double, byte>(DoubleToByte));
+        }
+
+
+        private static unsafe byte[] Canny24Bpp(Bilde i)
+        {
+            byte[] blur = Convolve24Bpp(i, Kernel.GaussianBlur, 0);
+
+            byte[] sobel = SobelOnBytes(blur, i.Width, i.Height, i.Stride);
+
         }
     }
 }

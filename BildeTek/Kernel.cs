@@ -68,5 +68,33 @@ namespace BildeTek
                 };
             }
         }
+
+        public static double[,] GaussianBlur
+        {
+            get
+            {
+                return new double[,]
+                {
+                    {1, 2, 1 },
+                    {2, 4, 2 },
+                    {1, 2, 1 }
+                };
+            }
+        }
+
+        public static double[,] UnsharpMask // Not sure if this works??
+        {
+            get
+            {
+                return new double[,]
+                {
+                    { 1, 4, 6, 4, 1 },
+                    { 4, 16, 24, 16, 14 },
+                    { 6, 24, -476, 24, 6 },
+                    { 4, 16, 24, 16, 14 },
+                    { 1, 4, 6, 4, 1 }
+                };
+            }
+        }
     }
 }

@@ -13,10 +13,11 @@ namespace Tests
     {
         static unsafe void Main(string[] args)
         {
-            Test24BppConvolve();
+            //Test24BppConvolve();
             TestGetBytes();
-            TestConvertToGreyScale24Bpp();
-            TestSobel();
+            //TestConvertToGreyScale24Bpp();
+            //TestSobel();
+            //TestGaussian();
 
             Console.WriteLine("All tests complete.");
 
@@ -28,12 +29,12 @@ namespace Tests
             Console.WriteLine("Starting Convolve24Bpp() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"C:\Users\Casey\Downloads\rubik.jpg");
-            string outputPath = (@"C:\Users\Casey\Downloads\rubikBilde.conv.jpg");
+            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.unsharp.jpg");
 
             Console.WriteLine("Created Bilde in {0}", DateTime.Now - start);
 
-            double[,] kernel = Kernel.LensBlur;
+            double[,] kernel = Kernel.UnsharpMask;
 
             byte[] convolvedData = Inspektor.Convolve(i, kernel);
             Console.WriteLine("Bilde has been convolved in {0}", DateTime.Now - start);
@@ -53,7 +54,9 @@ namespace Tests
             i.UnlockBits(imageData);
             i.Save(outputPath);
 
-            Console.WriteLine("Total took {0}\n", DateTime.Now - start);
+            TimeSpan duration = DateTime.Now - start;
+
+            Console.WriteLine("Total took {0} milliseconds.\n", Math.Round(duration.TotalMilliseconds));
         }
 
         private static void TestGetBytes()
@@ -61,7 +64,7 @@ namespace Tests
             Console.WriteLine("Starting GetBytes() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"C:\Users\Casey\Downloads\rubik.jpg");
+            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
             byte[] b = i.GetBytes();
 
             TimeSpan duration = DateTime.Now - start;
@@ -75,12 +78,12 @@ namespace Tests
             Console.WriteLine("Starting ConvertToGreyScale24Bpp() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"C:\Users\Casey\Downloads\rubik.jpg");
+            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
 
             byte[] greyData = Inspektor.GetGreyBytesOnly(i);
             Console.WriteLine("Retrieved greyscale data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"C:\Users\Casey\Downloads\rubikBilde.grey.jpg");
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.grey.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 
@@ -120,12 +123,12 @@ namespace Tests
             Console.WriteLine("Starting Sobel() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"C:\Users\Casey\Downloads\rubik.jpg");
+            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.conv.jpg");
 
             byte[] sobelData = Inspektor.Sobel(i);
             Console.WriteLine("Retrieved sobel data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"C:\Users\Casey\Downloads\rubikBilde.sobel.jpg");
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.conv.sobel.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 
@@ -149,6 +152,41 @@ namespace Tests
                     *px = colour;
                     *(px + 1) = colour;
                     *(px + 2) = colour;
+                }
+            }
+
+            i.UnlockBits(imageData);
+            i.Save(outputPath);
+
+            TimeSpan duration = DateTime.Now - start;
+
+            Console.WriteLine("Total took {0} milliseconds.\n", Math.Round(duration.TotalMilliseconds));
+        }
+
+        private unsafe static void TestGaussian()
+        {
+            Console.WriteLine("Starting Gaussian() Test");
+            DateTime start = DateTime.Now;
+
+            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.gaussian.jpg");
+
+            Console.WriteLine("Created Bilde in {0}", DateTime.Now - start);
+
+            double[,] kernel = Kernel.GaussianBlur;
+
+            byte[] convolvedData = Inspektor.Convolve(i, kernel);
+            Console.WriteLine("Bilde has been convolved in {0}", DateTime.Now - start);
+
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
+
+            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
+
+            for (int y = 0; y < i.Height; y++)
+            {
+                for (int x = 0; x < i.Width * 3; x++) // * 3 as 4 bytes per pixel
+                {
+                    *(scan0 + y * imageData.Stride + x) = convolvedData[y * imageData.Stride + x];
                 }
             }
 
