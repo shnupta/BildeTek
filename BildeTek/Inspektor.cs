@@ -632,12 +632,12 @@ namespace BildeTek
                     magnitude[index] = Math.Sqrt(dx * dx + dy * dy); // 1141 is approximately the max sobel response, we will normalise later anyway
 
                     // Directional orientation
-                    orientation[index] = Math.Atan2(dy, dx) + Math.PI; // Angle is in radians, now from 0 - 2PI. 
+                    orientation[index] = (Math.Atan2(dy, dx) / Math.PI * 180) + 180.0; // Angle is in radians, now from 0 - 2PI. 
 
                 }
             }
 
-
+            
             return Tuple.Create(Array.ConvertAll(magnitude, new Converter<double, byte>(DoubleToByte)), orientation);
         }
 
@@ -686,17 +686,111 @@ namespace BildeTek
             return dataOut;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inBytes"></param>
+        /// <param name="orientations">A double[] containing the angle of the gradient in inBytes from 0 - 2PI radians.</param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        private static byte[] NonMaximumSuppression(byte[] inBytes, double[] orientations, int width, int height)
+        {
+            int[] angles = { 0, 45, 90, 135, 180, 225, 270, 315, 360 };
+            
+            byte[] bytesOut = new byte[inBytes.Length];
+
+
+            byte[] buffer = new byte[9];
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    // get direction of the gradient at this current pixel.
+                    int index = y * width + x;
+                    double direction = orientations[index];
+
+                    buffer[0] = inBytes[index - width - 1];
+                    buffer[1] = inBytes[index - width];
+                    buffer[2] = inBytes[index - width + 1];
+                    buffer[3] = inBytes[index - 1];
+                    buffer[4] = inBytes[index]; // this current pixel
+                    buffer[5] = inBytes[index + 1];
+                    buffer[6] = inBytes[index + width - 1];
+                    buffer[7] = inBytes[index + width];
+                    buffer[8] = inBytes[index + width + 1];
+
+                    int nearest = (int)angles.OrderBy(p => Math.Abs((double)p - direction)).First();
+
+
+
+                    if (buffer[4] < 150) continue; // QUICK EXAMPLE OF A LOW THRESHOLD VALUE
+
+
+                    switch (nearest)
+                    {
+                        case 180:
+                        case 360:
+                        case 0:
+                            // if this magnitude is greater than its east and west neighbours, its maximum
+                            if (buffer[4] > buffer[5] && buffer[4] > buffer[3])
+                            {
+                                bytesOut[index] = buffer[4];
+                            }
+                            break;
+                        case 225:
+                        case 45:
+                            // if magnitude is greater than north east and south west then current is maximum 
+                            if(buffer[4] > buffer[2] && buffer[4] > buffer[6])
+                            {
+                                bytesOut[index] = buffer[4];
+                            }
+                            break;
+                        case 270:
+                        case 90:
+                            // must be greater than north and south
+                            if(buffer[4] > buffer[1] && buffer[4] > buffer[7])
+                            {
+                                bytesOut[index] = buffer[4];
+                            }
+                            break;
+                        case 315:
+                        case 135:
+                            // must be greater than north west and south east
+                            if(buffer[4] > buffer[0] && buffer[4] > buffer[8])
+                            {
+                                bytesOut[index] = buffer[4];
+                            }
+                            break;
+
+                    }
+                    
+                }
+            }
+
+
+            return bytesOut;
+        }
+
+
 
         private static unsafe byte[] Canny24Bpp(Bilde i)
         {
             // convert to greyscale, gaussian blur, run sobel operator to get gradient and orientation
             byte[] greyBytes = GetGreyBytesOnly(i);
 
-            byte[] blur = ConvolveOnGreyBytes(greyBytes, Kernel.MeanBlur, 0, i.Width, i.Height);
+            byte[] blur = ConvolveOnGreyBytes(greyBytes, Kernel.GaussianBlur, 0, i.Width, i.Height);
 
             Tuple<byte[], double[]> sobelOut = SobelOnBytesWithOrientation(greyBytes, i.Width, i.Height, i.Stride);
 
-            return blur; // change after non maximum suppression implementation
+            byte[] sobelMags = sobelOut.Item1;
+            double[] sobelOri = sobelOut.Item2;
+
+            byte[] suppressed = NonMaximumSuppression(sobelMags, sobelOri, i.Width, i.Height);
+
+
+            return suppressed; // change after non maximum suppression implementation
         }
     }
 }
