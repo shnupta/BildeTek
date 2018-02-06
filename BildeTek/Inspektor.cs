@@ -549,7 +549,7 @@ namespace BildeTek
                 g = inBytes[i + 1];
                 r = inBytes[i + 2];
 
-                outBytes[i % 3] = (byte)(b * .11 + g * .59 + r * .3);
+                outBytes[i / 3] = (byte)(b * .11 + g * .59 + r * .3);
             }
 
             return outBytes;
@@ -558,8 +558,47 @@ namespace BildeTek
         
         private static byte[] SobelOnBytes(byte[] inBytes, int width, int height, int stride)
         {
+            byte r, g, b;
 
-            byte[] greyData = ConvertToGreyScaleOnBytes(inBytes);
+            // Buffers
+            byte[] buffer = new byte[9];
+            double[] magnitude = new double[width * height]; // Stores the magnitude of the edge response
+
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+
+                    int index = y * width + x;
+
+                    // 3x3 window around (x,y)
+                    buffer[0] = inBytes[index - width - 1];
+                    buffer[1] = inBytes[index - width];
+                    buffer[2] = inBytes[index - width + 1];
+                    buffer[3] = inBytes[index - 1];
+                    buffer[4] = inBytes[index];
+                    buffer[5] = inBytes[index + 1];
+                    buffer[6] = inBytes[index + width - 1];
+                    buffer[7] = inBytes[index + width];
+                    buffer[8] = inBytes[index + width + 1];
+
+                    // Sobel horizontal and vertical response
+                    double dx = buffer[2] + 2 * buffer[5] + buffer[8] - buffer[0] - 2 * buffer[3] - buffer[6];
+                    double dy = buffer[6] + 2 * buffer[7] + buffer[8] - buffer[0] - 2 * buffer[1] - buffer[2];
+
+                    magnitude[index] = Math.Sqrt(dx * dx + dy * dy); // 1141 is approximately the max sobel response, we will normalise later anyway 
+
+                }
+            }
+
+
+            return Array.ConvertAll(magnitude, new Converter<double, byte>(DoubleToByte));
+        }
+
+
+        private static Tuple<byte[], double[]> SobelOnBytesWithOrientation(byte[] inBytes, int width, int height, int stride)
+        {
             byte r, g, b;
 
             // Buffers
@@ -576,15 +615,15 @@ namespace BildeTek
                     int index = y * width + x;
 
                     // 3x3 window around (x,y)
-                    buffer[0] = greyData[index - width - 1];
-                    buffer[1] = greyData[index - width];
-                    buffer[2] = greyData[index - width + 1];
-                    buffer[3] = greyData[index - 1];
-                    buffer[4] = greyData[index];
-                    buffer[5] = greyData[index + 1];
-                    buffer[6] = greyData[index + width - 1];
-                    buffer[7] = greyData[index + width];
-                    buffer[8] = greyData[index + width + 1];
+                    buffer[0] = inBytes[index - width - 1];
+                    buffer[1] = inBytes[index - width];
+                    buffer[2] = inBytes[index - width + 1];
+                    buffer[3] = inBytes[index - 1];
+                    buffer[4] = inBytes[index];
+                    buffer[5] = inBytes[index + 1];
+                    buffer[6] = inBytes[index + width - 1];
+                    buffer[7] = inBytes[index + width];
+                    buffer[8] = inBytes[index + width + 1];
 
                     // Sobel horizontal and vertical response
                     double dx = buffer[2] + 2 * buffer[5] + buffer[8] - buffer[0] - 2 * buffer[3] - buffer[6];
@@ -599,16 +638,65 @@ namespace BildeTek
             }
 
 
-            return Array.ConvertAll(magnitude, new Converter<double, byte>(DoubleToByte));
+            return Tuple.Create(Array.ConvertAll(magnitude, new Converter<double, byte>(DoubleToByte)), orientation);
+        }
+
+
+
+        private static byte[] ConvolveOnGreyBytes(byte[] inBytes, double[,] kernel, int radius, int width, int height)
+        {
+
+            byte[] dataOut = new byte[inBytes.Length];
+
+            int kernelSize = kernel.GetLength(0);
+
+            byte colour;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    double kT = 0.0, cT = 0.0;
+
+                    for (int v = 0; v < kernelSize; v++)
+                    {
+                        for (int u = 0; u < kernelSize; u++)
+                        {
+                            int cX = x + u - radius;
+                            int cY = y + v - radius;
+
+                            // We must make sure that the position isn't off the image
+                            if (cX < 0 || cX > width - 1 || cY < 0 || cY > height - 1)
+                            {
+                                continue;
+                            }
+
+                            colour = inBytes[cY * width + cX];
+
+                            cT += colour * kernel[u, v];
+                            kT += kernel[u, v];
+                            
+                        }
+                    }
+
+                    dataOut[y * width + x] = (byte)(cT / kT + 0.5);
+                }
+            }
+
+            return dataOut;
         }
 
 
         private static unsafe byte[] Canny24Bpp(Bilde i)
         {
-            byte[] blur = Convolve24Bpp(i, Kernel.GaussianBlur, 0);
+            // convert to greyscale, gaussian blur, run sobel operator to get gradient and orientation
+            byte[] greyBytes = GetGreyBytesOnly(i);
 
-            byte[] sobel = SobelOnBytes(blur, i.Width, i.Height, i.Stride);
+            byte[] blur = ConvolveOnGreyBytes(greyBytes, Kernel.MeanBlur, 0, i.Width, i.Height);
 
+            Tuple<byte[], double[]> sobelOut = SobelOnBytesWithOrientation(greyBytes, i.Width, i.Height, i.Stride);
+
+            return blur; // change after non maximum suppression implementation
         }
     }
 }

@@ -14,10 +14,11 @@ namespace Tests
         static unsafe void Main(string[] args)
         {
             //Test24BppConvolve();
-            TestGetBytes();
+            //TestGetBytes();
             //TestConvertToGreyScale24Bpp();
             //TestSobel();
             //TestGaussian();
+            Test24BppCanny();
 
             Console.WriteLine("All tests complete.");
 
@@ -30,11 +31,11 @@ namespace Tests
             DateTime start = DateTime.Now;
 
             Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.unsharp.jpg");
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.mean.jpg");
 
             Console.WriteLine("Created Bilde in {0}", DateTime.Now - start);
 
-            double[,] kernel = Kernel.UnsharpMask;
+            double[,] kernel = Kernel.MeanBlur;
 
             byte[] convolvedData = Inspektor.Convolve(i, kernel);
             Console.WriteLine("Bilde has been convolved in {0}", DateTime.Now - start);
@@ -123,12 +124,12 @@ namespace Tests
             Console.WriteLine("Starting Sobel() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.conv.jpg");
+            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
 
             byte[] sobelData = Inspektor.Sobel(i);
             Console.WriteLine("Retrieved sobel data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.conv.sobel.jpg");
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.sobel.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 
@@ -187,6 +188,54 @@ namespace Tests
                 for (int x = 0; x < i.Width * 3; x++) // * 3 as 4 bytes per pixel
                 {
                     *(scan0 + y * imageData.Stride + x) = convolvedData[y * imageData.Stride + x];
+                }
+            }
+
+            i.UnlockBits(imageData);
+            i.Save(outputPath);
+
+            TimeSpan duration = DateTime.Now - start;
+
+            Console.WriteLine("Total took {0} milliseconds.\n", Math.Round(duration.TotalMilliseconds));
+        }
+
+        private static unsafe void Test24BppCanny()
+        {
+
+            Console.WriteLine("Starting Canny() test.");
+
+            DateTime start = DateTime.Now;
+
+            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
+
+            byte[] afterCanny = Inspektor.Canny(i);
+
+            Console.WriteLine("Retrived canny data in {0}", DateTime.Now - start);
+
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.withorientation.canny.jpg");
+
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
+
+            int height = i.Height;
+            int width = i.Width;
+            int stride = i.Stride;
+            int bitsperpixel = i.BitsPerPixel;
+
+            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
+
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = y * stride + x * bitsperpixel / 8;
+                    byte* px = scan0 + index;
+
+                    byte colour = afterCanny[y * width + x];
+
+                    *px = colour;
+                    *(px + 1) = colour;
+                    *(px + 2) = colour;
                 }
             }
 
