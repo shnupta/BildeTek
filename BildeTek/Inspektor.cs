@@ -725,9 +725,6 @@ namespace BildeTek
 
 
 
-                    if (buffer[4] < 150) continue; // QUICK EXAMPLE OF A LOW THRESHOLD VALUE
-
-
                     switch (nearest)
                     {
                         case 180:
@@ -773,6 +770,54 @@ namespace BildeTek
             return bytesOut;
         }
 
+        private static byte[] HysteresisThreshold(byte[] inBytes,int width, int height, int lowThresh = 125, int highThresh = 175)
+        {
+            byte[] bytesOut = new byte[inBytes.Length];
+
+
+            byte[] buffer = new byte[9];
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    // get direction of the gradient at this current pixel.
+                    int index = y * width + x;
+
+                    buffer[0] = inBytes[index - width - 1];
+                    buffer[1] = inBytes[index - width];
+                    buffer[2] = inBytes[index - width + 1];
+                    buffer[3] = inBytes[index - 1];
+                    buffer[4] = inBytes[index]; // this current pixel
+                    buffer[5] = inBytes[index + 1];
+                    buffer[6] = inBytes[index + width - 1];
+                    buffer[7] = inBytes[index + width];
+                    buffer[8] = inBytes[index + width + 1];
+
+
+                    if (buffer[4] < lowThresh) continue; // not a strong enough edge response
+                    if(buffer[4] > highThresh) // always a strong enough edge
+                    {
+                        bytesOut[index] = buffer[4];
+                        continue;
+                    }
+
+                    // here we have debatable images
+                    byte pixel = buffer[4];
+                    buffer[4] = 0;
+                    if(buffer.Max() > highThresh)
+                    {
+                        bytesOut[index] = pixel;
+                        continue;
+                    }
+
+                }
+            }
+
+
+            return bytesOut;
+        }
+
 
 
         private static unsafe byte[] Canny24Bpp(Bilde i)
@@ -789,6 +834,7 @@ namespace BildeTek
 
             byte[] suppressed = NonMaximumSuppression(sobelMags, sobelOri, i.Width, i.Height);
 
+            byte[] thresh = HysteresisThreshold(suppressed, i.Width, i.Height, 200, 225);
 
             return suppressed; // change after non maximum suppression implementation
         }

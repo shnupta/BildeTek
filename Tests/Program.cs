@@ -124,12 +124,12 @@ namespace Tests
             Console.WriteLine("Starting Sobel() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\football.jpg");
+            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\tesla.jpg");
 
             byte[] sobelData = Inspektor.Sobel(i);
             Console.WriteLine("Retrieved sobel data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\football.sobel.jpg");
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\tesla.sobel.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 
@@ -206,13 +206,13 @@ namespace Tests
 
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\cube.jpg");
+            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\tesla.jpg");
 
             byte[] afterCanny = Inspektor.Canny(i);
 
             Console.WriteLine("Retrived canny data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\cube.withorientation.canny.jpg");
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\tesla.suppressed.canny.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 
