@@ -212,7 +212,7 @@ namespace Tests
 
             Console.WriteLine("Retrived canny data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\tesla.suppressed.canny.jpg");
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\tesla.canny.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 

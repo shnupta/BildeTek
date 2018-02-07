@@ -819,6 +819,22 @@ namespace BildeTek
         }
 
 
+        private static byte ByteMean(byte[] inBytes)
+        {
+            int length = inBytes.Length;
+            int count = 0;
+            byte total = 0;
+            for(int i = 0; i < length; i++)
+            {
+                if (inBytes[i] == 0) continue;
+                count++;
+                total += inBytes[i];
+            }
+
+            return (byte)(total / count);
+        }
+
+
 
         private static unsafe byte[] Canny24Bpp(Bilde i)
         {
@@ -834,9 +850,16 @@ namespace BildeTek
 
             byte[] suppressed = NonMaximumSuppression(sobelMags, sobelOri, i.Width, i.Height);
 
-            byte[] thresh = HysteresisThreshold(suppressed, i.Width, i.Height, 200, 225);
+            byte mean = ByteMean(suppressed);
 
-            return suppressed; // change after non maximum suppression implementation
+            int low = (int)Math.Max(0, (1.0 - 0.33) * mean);
+            int high = (int)Math.Min(255, (1.0 + 0.33) * mean);
+
+            byte[] thresh = HysteresisThreshold(suppressed, i.Width, i.Height, low, high);
+
+            
+
+            return thresh; // change after non maximum suppression implementation
         }
     }
 }
