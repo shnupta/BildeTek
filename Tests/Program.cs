@@ -18,7 +18,7 @@ namespace Tests
             //TestConvertToGreyScale24Bpp();
             //TestSobel();
             //TestGaussian();
-            Test24BppCanny();
+            TestCanny();
 
             Console.WriteLine("All tests complete.");
 
@@ -199,20 +199,20 @@ namespace Tests
             Console.WriteLine("Total took {0} milliseconds.\n", Math.Round(duration.TotalMilliseconds));
         }
 
-        private static unsafe void Test24BppCanny()
+        private static unsafe void TestCanny()
         {
 
             Console.WriteLine("Starting Canny() test.");
 
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\tesla.jpg");
+            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\ben.jpg");
 
             byte[] afterCanny = Inspektor.Canny(i);
 
             Console.WriteLine("Retrived canny data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\tesla.canny.jpg");
+            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\ben.canny.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 

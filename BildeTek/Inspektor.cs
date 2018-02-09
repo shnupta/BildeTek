@@ -47,36 +47,25 @@ namespace BildeTek
         }
 
         /// <summary>
-        /// Convolves a 24 bits per pixel image.
+        /// Convolves a 24Bpp image
         /// </summary>
         /// <param name="i"></param>
         /// <param name="kernel"></param>
-        /// <returns>A byte[] of BGR values.</returns>
-        private unsafe static byte[] Convolve24Bpp(Bilde i, double[,] kernel, int radius)
+        /// <param name="radius"></param>
+        /// <returns></returns>
+        private static byte[] Convolve24Bpp(Bilde i, double[,] kernel, int radius)
         {
-
             int width = i.Width;
             int height = i.Height;
-
-            BildeData imageData = i.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, i.PixelFormat);
-
-            
-
-            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
-
-            byte bitsPerPixel = (byte)i.BitsPerPixel;
-
-            int bytes = imageData.Stride * height;
-
             int stride = i.Stride;
-
-            byte[] dataOut = new byte[bytes];
-
+            byte bitsPerPixel = (byte)i.BitsPerPixel;
             int kernelSize = kernel.GetLength(0);
 
-            // as the kernel has already been checked by Convolve it's safe to continue
+            byte[] inBytes = i.GetBytes();
 
-            // 24bpp is BGR not RGB
+            int bytes = i.Stride * height;
+            byte[] dataOut = new byte[bytes];
+
             byte b, g, r;
 
             for (int y = 0; y < height; y++)
@@ -99,11 +88,11 @@ namespace BildeTek
                                 continue;
                             }
 
-                            byte* pixel = scan0 + cY * stride + cX * bitsPerPixel / 8;
+                            int index = cY * stride + cX * bitsPerPixel / 8;
 
-                            b = *pixel;
-                            g = *(pixel + 1);
-                            r = *(pixel + 2);
+                            b = inBytes[index];
+                            g = inBytes[index + 1];
+                            r = inBytes[index + 2];
 
                             bT += b * kernel[u, v];
                             gT += g * kernel[u, v];
@@ -123,11 +112,10 @@ namespace BildeTek
                 }
             }
 
-            i.UnlockBits(imageData);
-
             return dataOut;
-
         }
+        
+    
 
         /// <summary>
         /// Convolves a 32 bits per pixel image.
@@ -140,21 +128,14 @@ namespace BildeTek
 
             int width = i.Width;
             int height = i.Height;
-
-            BildeData imageData = i.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, i.PixelFormat);
-
             byte bitsPerPixel = (byte)i.BitsPerPixel;
-
-            int bytes = imageData.Stride * height;
-
+            int bytes = i.Stride * height;
             int stride = i.Stride;
-
-            byte[] dataOut = new byte[bytes];
-
-            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
-
             int kernelSize = kernel.GetLength(0);
 
+            byte[] inBytes = i.GetBytes();
+
+            byte[] dataOut = new byte[bytes];
             // as the kernel has already been checked by Convolve it's safe to continue
 
             // 32bpp is ARGB
@@ -180,12 +161,12 @@ namespace BildeTek
                                 continue;
                             }
 
-                            byte* pixel = scan0 + cY * stride + cX * bitsPerPixel / 8;
+                            int index = cY * stride + cX * bitsPerPixel / 8;
 
-                            b = *pixel;
-                            g = *(pixel + 1);
-                            r = *(pixel + 2);
-                            a = *(pixel + 3);
+                            b = inBytes[index];
+                            g = inBytes[index + 1];
+                            r = inBytes[index + 2];
+                            a = inBytes[index + 3];
 
                             bT += b * kernel[u, v];
                             gT += g * kernel[u, v];
@@ -205,8 +186,6 @@ namespace BildeTek
 
                 }
             }
-
-            i.UnlockBits(imageData);
 
             return dataOut;
         }
@@ -231,6 +210,99 @@ namespace BildeTek
                     throw new Exception(String.Format("The pixel format {0} is not supported.", pf.ToString()));
             }
         }
+
+
+
+        /// <summary>
+        /// Converts the Bilde into a 24Bpp greyscale image.
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns>A byte[] of RGB values.</returns>
+        private unsafe static byte[] ConvertToGreyScale24Bpp(Bilde i)
+        {
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+
+            int width = i.Width;
+            int height = i.Height;
+
+            int stride = i.Stride;
+            int bitsperpixel = i.BitsPerPixel;
+
+            byte[] greyOut = new byte[height * i.Stride];
+
+            byte r, g, b;
+
+            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = y * stride + x * bitsperpixel / 8;
+                    byte* px = scan0 + index;
+
+                    b = *px;
+                    g = *(px + 1);
+                    r = *(px + 2);
+
+                    byte grey = (byte)(b * .11 + g * .59 + r * .3);
+
+                    greyOut[index] = grey;
+                    greyOut[index + 1] = grey;
+                    greyOut[index + 2] = grey;
+                }
+            }
+
+            i.UnlockBits(imageData);
+
+            return greyOut;
+        }
+
+        /// <summary>
+        /// Converts the Bilde into a 32Bpp greyscale image.
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns>A byte[] of ARGB values.</returns>
+        private unsafe static byte[] ConvertToGreyScale32Bpp(Bilde i)
+        {
+            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+
+            int width = i.Width;
+            int height = i.Height;
+            int stride = i.Stride;
+            int bitsperpixel = i.BitsPerPixel;
+
+            byte[] greyOut = new byte[height * i.Stride];
+
+            byte r, g, b;
+
+            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = y * stride + x * bitsperpixel / 8;
+                    byte* px = scan0 + index;
+
+                    b = *px;
+                    g = *(px + 1);
+                    r = *(px + 2);
+
+                    byte grey = (byte)(b * .11 + g * .59 + r * .3);
+
+                    greyOut[index] = grey;
+                    greyOut[index + 1] = grey;
+                    greyOut[index + 2] = grey;
+                    greyOut[index + 3] = 0xFF; // alpha channel
+                }
+            }
+
+            i.UnlockBits(imageData);
+
+            return greyOut;
+        }
+
 
         /// <summary>
         /// Converts the image into greyscale, returning only the value of each pixel (rather than a separate colour for each colour channel).
@@ -329,99 +401,6 @@ namespace BildeTek
 
                     greyOut[y * width + x] = grey;
 
-                }
-            }
-
-            i.UnlockBits(imageData);
-
-            return greyOut;
-        }
-
-
-
-
-        /// <summary>
-        /// Converts the Bilde into a 24Bpp greyscale image.
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns>A byte[] of RGB values.</returns>
-        private unsafe static byte[] ConvertToGreyScale24Bpp(Bilde i)
-        {
-            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-
-            int width = i.Width;
-            int height = i.Height;
-
-            int stride = i.Stride;
-            int bitsperpixel = i.BitsPerPixel;
-
-            byte[] greyOut = new byte[height * i.Stride];
-
-            byte r, g, b;
-
-            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int index = y * stride + x * bitsperpixel / 8;
-                    byte* px = scan0 + index;
-
-                    b = *px;
-                    g = *(px + 1);
-                    r = *(px + 2);
-
-                    byte grey = (byte)(b * .11 + g * .59 + r * .3);
-
-                    greyOut[index] = grey;
-                    greyOut[index + 1] = grey;
-                    greyOut[index + 2] = grey;
-                }
-            }
-
-            i.UnlockBits(imageData);
-
-            return greyOut;
-        }
-
-        /// <summary>
-        /// Converts the Bilde into a 32Bpp greyscale image.
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns>A byte[] of ARGB values.</returns>
-        private unsafe static byte[] ConvertToGreyScale32Bpp(Bilde i)
-        {
-            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-
-            int width = i.Width;
-            int height = i.Height;
-            int stride = i.Stride;
-            int bitsperpixel = i.BitsPerPixel;
-
-            byte[] greyOut = new byte[height * i.Stride];
-
-            byte r, g, b;
-
-            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int index = y * stride + x * bitsperpixel / 8;
-                    byte* px = scan0 + index;
-
-                    b = *px;
-                    g = *(px + 1);
-                    r = *(px + 2);
-
-                    byte grey = (byte)(b * .11 + g * .59 + r * .3);
-
-                    greyOut[index] = grey;
-                    greyOut[index + 1] = grey;
-                    greyOut[index + 2] = grey;
-                    greyOut[index + 3] = 0xFF; // alpha channel
                 }
             }
 
@@ -823,7 +802,7 @@ namespace BildeTek
         {
             int length = inBytes.Length;
             int count = 0;
-            byte total = 0;
+            int total = 0;
             for(int i = 0; i < length; i++)
             {
                 if (inBytes[i] == 0) continue;
@@ -834,11 +813,26 @@ namespace BildeTek
             return (byte)(total / count);
         }
 
+        private static byte ByteMedian(byte[] inBytes)
+        {
+            int length = inBytes.Length;
+            List<byte> values = new List<byte>();
+            for(int i = 0; i < length; i++)
+            {
+                if (inBytes[i] == 0) continue;
+                values.Add(inBytes[i]);
+            }
+
+            values.Sort();
+
+            return values[values.Count / 2];
+        }
+
 
 
         private static unsafe byte[] Canny24Bpp(Bilde i)
         {
-            // convert to greyscale, gaussian blur, run sobel operator to get gradient and orientation
+            // convert to greyscale, gaussian blur, run sobel operator to get gradient and orientation, non maximum suppression then hysteresis thresholding.
             byte[] greyBytes = GetGreyBytesOnly(i);
 
             byte[] blur = ConvolveOnGreyBytes(greyBytes, Kernel.GaussianBlur, 0, i.Width, i.Height);
@@ -850,10 +844,13 @@ namespace BildeTek
 
             byte[] suppressed = NonMaximumSuppression(sobelMags, sobelOri, i.Width, i.Height);
 
-            byte mean = ByteMean(suppressed);
+            // Automatic threshold calculation
+            //byte mean = ByteMean(suppressed);
+            byte median = ByteMedian(suppressed);
 
-            int low = (int)Math.Max(0, (1.0 - 0.33) * mean);
-            int high = (int)Math.Min(255, (1.0 + 0.33) * mean);
+            int low = (int)Math.Max(0, (1.0 - 0.33) * median);
+            int high = (int)Math.Min(255, (1.0 + 0.33) * median);
+            //
 
             byte[] thresh = HysteresisThreshold(suppressed, i.Width, i.Height, low, high);
 

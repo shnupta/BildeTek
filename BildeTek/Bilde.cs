@@ -171,7 +171,10 @@ namespace BildeTek
 
         }
 
-
+        /// <summary>
+        /// Gets the number of bits that represent a single pixel.
+        /// </summary>
+        /// <returns></returns>
         private int GetBitsPerPixel()
         {
             switch (this.PixelFormat)
@@ -186,7 +189,13 @@ namespace BildeTek
             }
         }
 
-
+        /// <summary>
+        /// Locks the bitmap in memory so the contents are not moved.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="ilm"></param>
+        /// <param name="pf"></param>
+        /// <returns></returns>
         public BildeData LockBits(Rectangle rect, ImageLockMode ilm, PixelFormat pf)
         {
             BitmapData bd = m_Image.LockBits(rect, ilm, pf);
@@ -196,14 +205,22 @@ namespace BildeTek
             return bildeData;
         }
 
+        /// <summary>
+        /// Releases the locked bitmap data back to the C# memory manager.
+        /// </summary>
+        /// <param name="bildeData"></param>
         public void UnlockBits(BildeData bildeData)
         {
             m_Image.UnlockBits(bildeData.m_ImageData);
         }
 
-        public void Save(string filename)
+        /// <summary>
+        /// Saves the image at path.
+        /// </summary>
+        /// <param name="filename"></param>
+        public void Save(string path)
         {
-            m_Image.Save(filename);
+            m_Image.Save(path);
         }
 
 
