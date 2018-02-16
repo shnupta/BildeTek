@@ -6,11 +6,17 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
 using BildeTek;
+using System.Resources;
+using System.Reflection;
 
 namespace Tests
 {
     class Program
     {
+
+        public static ResourceManager rm = new ResourceManager("Tests.images", Assembly.GetExecutingAssembly());
+
+
         static unsafe void Main(string[] args)
         {
             //Test24BppConvolve();
@@ -206,13 +212,13 @@ namespace Tests
 
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"C:\Users\Casey\Downloads\turtle.jpg");
+            Bilde i = new Bilde(rm.GetString("car_in"));
 
             byte[] afterCanny = Inspektor.Canny(i);
 
             Console.WriteLine("Retrived canny data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"C:\Users\Casey\Downloads\turtle.canny.jpg");
+            string outputPath = (rm.GetString("out_path") + "car.canny.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 

@@ -15,3 +15,5 @@ C:\Users\Casey\source\repos\BildeTek\Tests\obj\Debug\Tests.csprojResolveAssembly
 C:\Users\Casey\source\repos\BildeTek\Tests\obj\Debug\Tests.csproj.CoreCompileInputs.cache
 C:\Users\Casey\source\repos\BildeTek\Tests\obj\Debug\Tests.exe
 C:\Users\Casey\source\repos\BildeTek\Tests\obj\Debug\Tests.pdb
+C:\Users\Casey\source\repos\BildeTek\Tests\obj\Debug\Tests.images.resources
+C:\Users\Casey\source\repos\BildeTek\Tests\obj\Debug\Tests.csproj.GenerateResource.Cache
