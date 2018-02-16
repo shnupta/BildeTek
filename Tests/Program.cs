@@ -206,13 +206,13 @@ namespace Tests
 
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\ben.jpg");
+            Bilde i = new Bilde(@"C:\Users\Casey\Downloads\turtle.jpg");
 
             byte[] afterCanny = Inspektor.Canny(i);
 
             Console.WriteLine("Retrived canny data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\ben.canny.jpg");
+            string outputPath = (@"C:\Users\Casey\Downloads\turtle.canny.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 
