@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
 
+
 namespace BildeTek
 {
     /// <summary>
@@ -220,30 +221,28 @@ namespace BildeTek
         /// <returns>A byte[] of RGB values.</returns>
         private unsafe static byte[] ConvertToGreyScale24Bpp(Bilde i)
         {
-            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
             int width = i.Width;
             int height = i.Height;
-
             int stride = i.Stride;
             int bitsperpixel = i.BitsPerPixel;
 
-            byte[] greyOut = new byte[height * i.Stride];
+            byte[] data = i.GetBytes();
+
+            byte[] greyOut = new byte[data.Length];
 
             byte r, g, b;
 
-            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
                     int index = y * stride + x * bitsperpixel / 8;
-                    byte* px = scan0 + index;
 
-                    b = *px;
-                    g = *(px + 1);
-                    r = *(px + 2);
+                    b = data[index];
+                    g = data[index + 1];
+                    r = data[index + 2];
 
                     byte grey = (byte)(b * .11 + g * .59 + r * .3);
 
@@ -252,8 +251,6 @@ namespace BildeTek
                     greyOut[index + 2] = grey;
                 }
             }
-
-            i.UnlockBits(imageData);
 
             return greyOut;
         }
@@ -265,29 +262,27 @@ namespace BildeTek
         /// <returns>A byte[] of ARGB values.</returns>
         private unsafe static byte[] ConvertToGreyScale32Bpp(Bilde i)
         {
-            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
             int width = i.Width;
             int height = i.Height;
             int stride = i.Stride;
             int bitsperpixel = i.BitsPerPixel;
 
-            byte[] greyOut = new byte[height * i.Stride];
+            byte[] data = i.GetBytes();
+            byte[] greyOut = new byte[data.Length];
 
             byte r, g, b;
 
-            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
                     int index = y * stride + x * bitsperpixel / 8;
-                    byte* px = scan0 + index;
 
-                    b = *px;
-                    g = *(px + 1);
-                    r = *(px + 2);
+                    b = data[index];
+                    g = data[index + 1];
+                    r = data[index + 2];
 
                     byte grey = (byte)(b * .11 + g * .59 + r * .3);
 
@@ -297,8 +292,6 @@ namespace BildeTek
                     greyOut[index + 3] = 0xFF; // alpha channel
                 }
             }
-
-            i.UnlockBits(imageData);
 
             return greyOut;
         }
@@ -328,16 +321,12 @@ namespace BildeTek
 
         private unsafe static byte[] GetGreyBytesOnly24Bpp(Bilde i)
         {
-            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, i.PixelFormat);
-
-            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
-
             int width = i.Width;
             int height = i.Height;
-
             int stride = i.Stride;
             int bitsperpixel = i.BitsPerPixel;
 
+            byte[] data = i.GetBytes();
             byte[] greyOut = new byte[i.Width * i.Height];
 
             byte r, g, b, grey;
@@ -349,11 +338,9 @@ namespace BildeTek
                 {
                     index = y * stride + x * bitsperpixel / 8;
 
-                    byte* data = scan0 + index;
-
-                    b = *data;
-                    g = *(data + 1);
-                    r = *(data + 2);
+                    b = data[index];
+                    g = data[index + 1];
+                    r = data[index + 2];
 
                     grey = (byte)(b * 0.11 + g * 0.59 + r * 0.3);
 
@@ -362,24 +349,18 @@ namespace BildeTek
                 }
             }
 
-            i.UnlockBits(imageData);
-
             return greyOut;
         }
 
 
         private unsafe static byte[] GetGreyBytesOnly32Bpp(Bilde i)
         {
-            BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadOnly, i.PixelFormat);
-
-            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
-
             int width = i.Width;
             int height = i.Height;
-
             int stride = i.Stride;
             int bitsperpixel = i.BitsPerPixel;
 
+            byte[] data = i.GetBytes();
             byte[] greyOut = new byte[i.Width * i.Height];
 
             byte r, g, b, grey;
@@ -391,11 +372,9 @@ namespace BildeTek
                 {
                     index = y * stride + x * bitsperpixel / 8;
 
-                    byte* data = scan0 + index;
-
-                    b = *data;
-                    g = *(data + 1);
-                    r = *(data + 2);
+                    b = data[index];
+                    g = data[index + 1];
+                    r = data[index + 2];
 
                     grey = (byte)(b * 0.11 + g * 0.59 + r * 0.3);
 
@@ -403,8 +382,6 @@ namespace BildeTek
 
                 }
             }
-
-            i.UnlockBits(imageData);
 
             return greyOut;
         }
@@ -429,20 +406,11 @@ namespace BildeTek
         private unsafe static byte[] Sobel24Bpp(Bilde i)
         {
             int width = i.Width;
-            int height = i.Height;
-
-            
-
+            int height = i.Height;        
             int bitsPerPixel = i.BitsPerPixel;
             int stride = i.Stride;
 
             byte[] greyData = GetGreyBytesOnly(i);
-            BildeData imageData = i.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, i.PixelFormat);
-
-
-            byte* scan0 = (byte*)imageData.Scan0.ToPointer();
-
-            byte r, g, b;
 
             // Buffers
             byte[] buffer = new byte[9];
@@ -454,13 +422,6 @@ namespace BildeTek
             {
                 for (int x = 1; x < width - 1; x++)
                 {
-                    // the first of 3 bgr colour bytes
-                    byte* px = scan0 + y * stride + x * bitsPerPixel / 8;
-
-                    b = *(px);
-                    g = *(px + 1);
-                    r = *(px + 2);
-
                     int index = y * width + x;
 
                     // 3x3 window around (x,y)
@@ -485,9 +446,6 @@ namespace BildeTek
 
                 }
             }
-
-            // unlock the image
-            i.UnlockBits(imageData);
 
             return Array.ConvertAll(magnitude, new Converter<double, byte>(DoubleToByte));
 
@@ -534,51 +492,9 @@ namespace BildeTek
             return outBytes;
         }
 
-        
-        private static byte[] SobelOnBytes(byte[] inBytes, int width, int height, int stride)
+
+        private static Tuple<byte[], double[]> SobelWithOrientation(byte[] inBytes, int width, int height, int stride)
         {
-            byte r, g, b;
-
-            // Buffers
-            byte[] buffer = new byte[9];
-            double[] magnitude = new double[width * height]; // Stores the magnitude of the edge response
-
-
-            for (int y = 1; y < height - 1; y++)
-            {
-                for (int x = 1; x < width - 1; x++)
-                {
-
-                    int index = y * width + x;
-
-                    // 3x3 window around (x,y)
-                    buffer[0] = inBytes[index - width - 1];
-                    buffer[1] = inBytes[index - width];
-                    buffer[2] = inBytes[index - width + 1];
-                    buffer[3] = inBytes[index - 1];
-                    buffer[4] = inBytes[index];
-                    buffer[5] = inBytes[index + 1];
-                    buffer[6] = inBytes[index + width - 1];
-                    buffer[7] = inBytes[index + width];
-                    buffer[8] = inBytes[index + width + 1];
-
-                    // Sobel horizontal and vertical response
-                    double dx = buffer[2] + 2 * buffer[5] + buffer[8] - buffer[0] - 2 * buffer[3] - buffer[6];
-                    double dy = buffer[6] + 2 * buffer[7] + buffer[8] - buffer[0] - 2 * buffer[1] - buffer[2];
-
-                    magnitude[index] = Math.Sqrt(dx * dx + dy * dy); // 1141 is approximately the max sobel response, we will normalise later anyway 
-
-                }
-            }
-
-
-            return Array.ConvertAll(magnitude, new Converter<double, byte>(DoubleToByte));
-        }
-
-
-        private static Tuple<byte[], double[]> SobelOnBytesWithOrientation(byte[] inBytes, int width, int height, int stride)
-        {
-            byte r, g, b;
 
             // Buffers
             byte[] buffer = new byte[9];
@@ -781,7 +697,6 @@ namespace BildeTek
                         continue;
                     }
 
-                    // here we have debatable images
                     byte pixel = buffer[4];
                     buffer[4] = 0;
                     if(buffer.Max() > highThresh)
@@ -837,7 +752,7 @@ namespace BildeTek
 
             byte[] blur = ConvolveOnGreyBytes(greyBytes, Kernel.GaussianBlur, 0, i.Width, i.Height);
 
-            Tuple<byte[], double[]> sobelOut = SobelOnBytesWithOrientation(greyBytes, i.Width, i.Height, i.Stride);
+            Tuple<byte[], double[]> sobelOut = SobelWithOrientation(greyBytes, i.Width, i.Height, i.Stride);
 
             byte[] sobelMags = sobelOut.Item1;
             double[] sobelOri = sobelOut.Item2;
@@ -853,8 +768,6 @@ namespace BildeTek
             //
 
             byte[] thresh = HysteresisThreshold(suppressed, i.Width, i.Height, low, high);
-
-            
 
             return thresh; // change after non maximum suppression implementation
         }
