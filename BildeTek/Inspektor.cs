@@ -396,7 +396,7 @@ namespace BildeTek
                     return Sobel24Bpp(i);
                 case PixelFormat.Format32bppArgb:
                 case PixelFormat.Format32bppRgb:
-                    return new byte[9]; // implement 32bpp option
+                    return Sobel32Bpp(i);
                 default:
                     throw new Exception(String.Format("The pixel format {0} is not supported.", pf.ToString()));
             }
@@ -407,6 +407,54 @@ namespace BildeTek
         {
             int width = i.Width;
             int height = i.Height;        
+            int bitsPerPixel = i.BitsPerPixel;
+            int stride = i.Stride;
+
+            byte[] greyData = GetGreyBytesOnly(i);
+
+            // Buffers
+            byte[] buffer = new byte[9];
+            double[] magnitude = new double[width * height]; // Stores the magnitude of the edge response
+            double[] orientation = new double[width * height]; // Stores the angle of the edge at that location
+
+
+            for (int y = 1; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    int index = y * width + x;
+
+                    // 3x3 window around (x,y)
+                    buffer[0] = greyData[index - width - 1];
+                    buffer[1] = greyData[index - width];
+                    buffer[2] = greyData[index - width + 1];
+                    buffer[3] = greyData[index - 1];
+                    buffer[4] = greyData[index];
+                    buffer[5] = greyData[index + 1];
+                    buffer[6] = greyData[index + width - 1];
+                    buffer[7] = greyData[index + width];
+                    buffer[8] = greyData[index + width + 1];
+
+                    // Sobel horizontal and vertical response
+                    double dx = buffer[2] + 2 * buffer[5] + buffer[8] - buffer[0] - 2 * buffer[3] - buffer[6];
+                    double dy = buffer[6] + 2 * buffer[7] + buffer[8] - buffer[0] - 2 * buffer[1] - buffer[2];
+
+                    magnitude[index] = Math.Sqrt(dx * dx + dy * dy); // 1141 is approximately the max sobel response, we will normalise later anyway
+
+                    // Directional orientation
+                    orientation[index] = Math.Atan2(dy, dx) + Math.PI; // Angle is in radians, now from 0 - 2PI. 
+
+                }
+            }
+
+            return Array.ConvertAll(magnitude, new Converter<double, byte>(DoubleToByte));
+
+        }
+
+        private unsafe static byte[] Sobel32Bpp(Bilde i)
+        {
+            int width = i.Width;
+            int height = i.Height;
             int bitsPerPixel = i.BitsPerPixel;
             int stride = i.Stride;
 
