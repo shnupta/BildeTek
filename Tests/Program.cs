@@ -19,11 +19,11 @@ namespace Tests
 
         static unsafe void Main(string[] args)
         {
-            //Test24BppConvolve();
-            //TestGetBytes();
-            //TestConvertToGreyScale24Bpp();
-            //TestSobel();
-            //TestGaussian();
+            Test24BppConvolve();
+            TestGetBytes();
+            TestConvertToGreyScale24Bpp();
+            TestSobel();
+            TestGaussian();
             TestCanny();
 
             Console.WriteLine("All tests complete.");
@@ -36,8 +36,8 @@ namespace Tests
             Console.WriteLine("Starting Convolve24Bpp() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.mean.jpg");
+            Bilde i = new Bilde(rm.GetString("bike_in"));
+            string outputPath = rm.GetString("out_path") + "bike.convolve.jpg";
 
             Console.WriteLine("Created Bilde in {0}", DateTime.Now - start);
 
@@ -71,7 +71,7 @@ namespace Tests
             Console.WriteLine("Starting GetBytes() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
+            Bilde i = new Bilde(rm.GetString("buzzard_in"));
             byte[] b = i.GetBytes();
 
             TimeSpan duration = DateTime.Now - start;
@@ -85,12 +85,12 @@ namespace Tests
             Console.WriteLine("Starting ConvertToGreyScale24Bpp() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
+            Bilde i = new Bilde(rm.GetString("car_in"));
 
             byte[] greyData = Inspektor.GetGreyBytesOnly(i);
             Console.WriteLine("Retrieved greyscale data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.grey.jpg");
+            string outputPath = rm.GetString("out_path") + "car.greyscale.jpg";
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 
@@ -130,12 +130,12 @@ namespace Tests
             Console.WriteLine("Starting Sobel() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\tesla.jpg");
+            Bilde i = new Bilde(rm.GetString("cat_in"));
 
             byte[] sobelData = Inspektor.Sobel(i);
             Console.WriteLine("Retrieved sobel data in {0}", DateTime.Now - start);
 
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\tesla.sobel.jpg");
+            string outputPath = rm.GetString("out_path") + "cat.sobel.jpg";
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 
@@ -175,8 +175,8 @@ namespace Tests
             Console.WriteLine("Starting Gaussian() Test");
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(@"N:\My Documents\Computer Science\Other Coding\butterfly.jpg");
-            string outputPath = (@"N:\My Documents\Computer Science\Other Coding\butterfly.gaussian.jpg");
+            Bilde i = new Bilde(rm.GetString("car_in"));
+            string outputPath = rm.GetString("out_path") + "car.gaussian.jpg";
 
             Console.WriteLine("Created Bilde in {0}", DateTime.Now - start);
 
@@ -212,13 +212,13 @@ namespace Tests
 
             DateTime start = DateTime.Now;
 
-            Bilde i = new Bilde(rm.GetString("car_in"));
+            Bilde i = new Bilde(rm.GetString("bike_in"));
 
             byte[] afterCanny = Inspektor.Canny(i);
 
             Console.WriteLine("Retrived canny data in {0}", DateTime.Now - start);
 
-            string outputPath = (rm.GetString("out_path") + "car.canny.jpg");
+            string outputPath = (rm.GetString("out_path") + "bike.canny.jpg");
 
             BildeData imageData = i.LockBits(new Rectangle(0, 0, i.Width, i.Height), ImageLockMode.ReadWrite, i.PixelFormat);
 
